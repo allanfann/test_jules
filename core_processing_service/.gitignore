@@ -1,0 +1,10 @@
+# Ignore Firebase credentials file
+firebase-credentials.json
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
