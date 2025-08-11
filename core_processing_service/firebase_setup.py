@@ -4,9 +4,9 @@ import os
 
 # --- Firebase Initialization ---
 
-# Path to the service account key file.
-# This file should be placed in the `core_processing_service` directory and is ignored by git.
-CREDENTIALS_FILE = "firebase-credentials.json"
+# Construct the absolute path to the credentials file, relative to this script's location.
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+CREDENTIALS_FILE = os.path.join(_current_dir, "firebase-credentials.json")
 
 db = None
 
