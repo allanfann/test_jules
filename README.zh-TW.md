@@ -127,7 +127,7 @@ graph TD
 在啟用虛擬環境並安裝完所有依賴套件後，您可以使用 `uvicorn` 來啟動本地開發伺服器。
 
 ```bash
-uvicorn main:app --reload
+uv run uvicorn main:app --reload
 ```
 
 `--reload` 參數會讓伺服器在偵測到程式碼變更時自動重啟，非常適合開發環境。
