@@ -89,47 +89,72 @@ graph TD
     style L fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
-## 安裝與設定
+## 後端服務 (`backend/`)
 
-請依照以下步驟設定並執行 `core_processing_service`。
+此目錄包含使用 FastAPI 建置的核心後端服務。
 
-1.  **進入核心處理服務目錄**
+### 本地開發
+
+#### 環境需求
+
+-   Python 3.12
+-   虛擬環境管理工具 (例如 `venv` 或 `uv`)
+
+#### 設定與執行服務
+
+1.  **進入後端服務目錄**
 
     ```bash
-    cd core_processing_service
+    cd backend
     ```
 
-2.  **建立虛擬環境**
+2.  **啟用虛擬環境**
 
-    本專案建議使用 `uv` 來管理虛擬環境與套件。請先確保您已安裝 `uv`。
-
-    使用 `uv` 建立一個名為 `.venv` 的虛擬環境：
-    ```bash
-    uv venv
-    ```
-
-3.  **啟用虛擬環境**
-
+    本專案已包含一個預先設定好的虛擬環境。執行以下指令來啟用它：
     ```bash
     source .venv/bin/activate
     ```
     啟用後，您的終端機提示符前應會顯示 `(.venv)`。
 
-4.  **安裝依賴套件**
+3.  **安裝依賴套件**
 
-    使用 `uv` 安裝 `requirements.txt` 中定義的套件：
+    啟用虛擬環境後，安裝所需的套件。
+    (建議使用 `uv`)
     ```bash
     uv pip install -r requirements.txt
     ```
+    或者，您也可以使用 `pip`:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## 執行服務
+4.  **設定 Firebase 憑證 (若有需要)**
 
-在啟用虛擬環境並安裝完所有依賴套件後，您可以使用 `uvicorn` 來啟動本地開發伺服器。
+    如果服務需要連接到 Firebase，請遵循 `INSTRUCTIONS_FIREBASE.zh-TW.md` 中的說明，在此目錄中設定您的 `firebase-credentials.json` 檔案。
+
+5.  **執行開發伺服器**
+
+    使用 `uvicorn` 來執行 FastAPI 應用程式。`--reload` 參數會在偵測到程式碼變更時自動重啟。
+    ```bash
+    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    ```
+
+    服務啟動後，您可以前往 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) 查看自動產生的 API 文件。
+
+### 執行測試
+
+若要執行自動化測試，請使用以下指令：
 
 ```bash
-uv run uvicorn main:app --reload
+python3 -m unittest backend/tests/test_tree_engine.py
 ```
 
-`--reload` 參數會讓伺服器在偵測到程式碼變更時自動重啟，非常適合開發環境。
+### 填充 Firestore 資料庫
 
-服務啟動後，您可以前往 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) 查看自動產生的 API 文件。
+您可以執行填充指令碼，將初始資料填入您的 Firestore 資料庫。在執行此操作前，請確保您的 Firebase 憑證已正確設定。
+
+```bash
+python3 backend/scripts/seed_firestore.py
+```
+
+此指令碼會在您的 Firestore 資料庫中建立必要的集合與文件。如果資料已存在，腳本不會進行覆寫。

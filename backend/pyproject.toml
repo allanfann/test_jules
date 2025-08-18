@@ -13,6 +13,7 @@ dependencies = [
     "firebase-admin>=7.1.0",
     "jieba>=0.42.1",
     "pydantic>=2.11.7",
+    "scikit-learn>=1.7.1",
     "uvicorn>=0.35.0",
 ]
 
