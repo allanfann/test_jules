@@ -2,16 +2,18 @@ import os
 from contextlib import asynccontextmanager
 
 import firebase_admin
+import torch
 from firebase_admin import credentials, firestore
 from fastapi import FastAPI, HTTPException, Request
+from transformers import BertModel, BertTokenizer
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Handles application lifespan events for Firebase initialization.
+    Handles application lifespan events for Firebase and BERT model initialization.
     """
-    # Startup
+    # --- Firebase Startup ---
     print("Initializing Firebase...")
     try:
         # The credentials file is expected to be in the `backend` directory.
@@ -37,11 +39,25 @@ async def lifespan(app: FastAPI):
         print(f"Error initializing Firebase: {e}")
         app.state.db = None
 
+    # --- BERT Model Startup ---
+    print("Loading BERT model...")
+    try:
+        model_name = "bert-base-chinese"
+        tokenizer = BertTokenizer.from_pretrained(model_name)
+        model = BertModel.from_pretrained(model_name)
+        app.state.bert_tokenizer = tokenizer
+        app.state.bert_model = model
+        print("BERT model loaded successfully.")
+    except Exception as e:
+        print(f"Error loading BERT model: {e}")
+        app.state.bert_tokenizer = None
+        app.state.bert_model = None
+
     yield
 
-    # Shutdown
-    print("Firebase shutdown.")
-    # No explicit shutdown needed for firebase-admin
+    # --- Shutdown ---
+    print("Application shutdown.")
+    # No explicit shutdown needed for firebase-admin or the BERT model
 
 
 def get_firestore_db(request: Request) -> firestore.Client:
