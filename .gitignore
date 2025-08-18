@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+.Python
+build/
+dist/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+.venv/
+env/
+venv/
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+.tox/
+.nox/
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Flutter
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/build/
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/ephemeral/
+app/ios/Flutter/App.framework
+app/ios/Flutter/Flutter.framework
+app/ios/Runner/GeneratedPluginRegistrant.*
+app/android/.gradle/
+app/android/app/build/
+app/android/build/
+app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+app/pubspec.lock
+
+# macOS
+.DS_Store
+
+# Firebase
+backend/firebase-credentials.json

@@ -1,21 +1,29 @@
-from firebase_setup import get_firestore_db
+from firebase_admin import firestore
 
 # --- Custom Exceptions for the Engine ---
 
+
 class TreeNotFound(Exception):
     """Raised when a decision tree with the given ID is not found."""
+
     pass
+
 
 class NodeNotFound(Exception):
     """Raised when a node with the given ID is not found within a tree."""
+
     pass
+
 
 class InvalidAnswer(Exception):
     """Raised when a provided answer is not a valid option for a decision node."""
+
     pass
+
 
 class NotDecisionNode(Exception):
     """Raised when trying to get the next node from an outcome node."""
+
     pass
 
 
@@ -24,13 +32,16 @@ class DecisionTreeEngine:
     A class to handle the logic of fetching and traversing decision trees
     stored in Firestore.
     """
-    def __init__(self):
+
+    def __init__(self, db: firestore.Client):
         """
-        Initializes the engine and gets the Firestore database client.
+        Initializes the engine with a Firestore database client.
         """
-        self.db = get_firestore_db()
-        if not self.db:
-            raise ConnectionError("Firestore database is not initialized. Cannot create DecisionTreeEngine.")
+        if not db:
+            raise ConnectionError(
+                "A valid Firestore client must be provided to DecisionTreeEngine."
+            )
+        self.db = db
 
     def get_start_node(self, tree_id: str) -> dict:
         """
@@ -56,7 +67,9 @@ class DecisionTreeEngine:
         root_node_id = tree_data.get("root_node_id")
 
         if not root_node_id:
-            raise TreeNotFound(f"Tree '{tree_id}' is malformed and does not have a 'root_node_id'.")
+            raise TreeNotFound(
+                f"Tree '{tree_id}' is malformed and does not have a 'root_node_id'."
+            )
 
         return self.get_node_by_id(tree_id, root_node_id)
 
@@ -74,14 +87,19 @@ class DecisionTreeEngine:
         Raises:
             NodeNotFound: If the node is not found in the specified tree.
         """
-        node_ref = self.db.collection("decision_trees").document(tree_id).collection("nodes").document(node_id)
+        node_ref = (
+            self.db.collection("decision_trees")
+            .document(tree_id)
+            .collection("nodes")
+            .document(node_id)
+        )
         node_doc = node_ref.get()
 
         if not node_doc.exists:
             raise NodeNotFound(f"Node '{node_id}' not found for tree '{tree_id}'.")
 
         node_data = node_doc.to_dict()
-        node_data['id'] = node_doc.id  # Add the node's ID to the dict for convenience
+        node_data["id"] = node_doc.id  # Add the node's ID to the dict for convenience
         return node_data
 
     def get_next_node(self, tree_id: str, current_node_id: str, answer: str) -> dict:
@@ -104,7 +122,9 @@ class DecisionTreeEngine:
         current_node_data = self.get_node_by_id(tree_id, current_node_id)
 
         if current_node_data.get("type") != "DECISION":
-            raise NotDecisionNode("The current node is an outcome node and has no children.")
+            raise NotDecisionNode(
+                "The current node is an outcome node and has no children."
+            )
 
         children = current_node_data.get("children", [])
         next_node_id = None
@@ -114,7 +134,9 @@ class DecisionTreeEngine:
                 break
 
         if not next_node_id:
-            valid_answers = [child.get('answer_text') for child in children]
-            raise InvalidAnswer(f"'{answer}' is not a valid answer for this node. Please choose from: {valid_answers}")
+            valid_answers = [child.get("answer_text") for child in children]
+            raise InvalidAnswer(
+                f"'{answer}' is not a valid answer for this node. Please choose from: {valid_answers}"
+            )
 
         return self.get_node_by_id(tree_id, next_node_id)

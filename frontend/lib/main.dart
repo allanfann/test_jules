@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'decision_service.dart';
+import 'settings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -53,7 +54,8 @@ class _DecisionScreenState extends State<DecisionScreen> {
       });
     } catch (e) {
       setState(() {
-        _question = "Failed to load decision. Make sure the backend is running.";
+        _question =
+            "Failed to load decision. Make sure the backend is running.";
         _answers = [];
         _isOutcome = true;
       });
@@ -71,12 +73,29 @@ class _DecisionScreenState extends State<DecisionScreen> {
     }
   }
 
+  void _navigateToSettings() {
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(builder: (context) => const SettingsPage()),
+    )
+        .then((_) {
+      // Refetch the decision tree when returning from settings
+      _fetchDecision(DecisionRequest(treeId: _treeId));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Decision Tree'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: _navigateToSettings,
+          ),
+        ],
       ),
       body: Center(
         child: Padding(
@@ -100,7 +119,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
                       child: Text(answer),
                     ),
                   );
-                }).toList(),
+                }),
             ],
           ),
         ),

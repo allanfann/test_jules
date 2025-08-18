@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'settings_service.dart';
 
 class DecisionRequest {
   final String treeId;
@@ -46,11 +47,12 @@ class DecisionResponse {
 }
 
 class DecisionService {
-  final String _baseUrl = "http://127.0.0.1:8000/api/v1";
+  final SettingsService _settingsService = SettingsService();
 
   Future<DecisionResponse> decide(DecisionRequest request) async {
+    final backendUrl = await _settingsService.getBackendUrl();
     final response = await http.post(
-      Uri.parse('$_baseUrl/decide'),
+      Uri.parse('$backendUrl/api/v1/decide'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

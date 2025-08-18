@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "backend"
 version = "0.1.0"
@@ -7,6 +11,29 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.116.1",
     "firebase-admin>=7.1.0",
+    "jieba>=0.42.1",
     "pydantic>=2.11.7",
     "uvicorn>=0.35.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5.5",
+]
+
+[tool.ruff]
+lint.select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort
+    "UP", # pyupgrade
+]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.setuptools]
+packages = ["app"]
