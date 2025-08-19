@@ -19,26 +19,24 @@ from app.models.legacy import (
 router = APIRouter()
 
 
+from firebase_admin import firestore
+
+from app.core.firebase_setup import get_firestore_db
+
+
 # --- Personality Analysis Logic ---
-def analyze_personality(text: str) -> Dict:
+def analyze_personality(text: str, personalities: Dict) -> Dict:
     """
     Analyzes the text to determine a personality type based on keyword matching.
     This is a simplified prototype implementation.
     """
-    # Define keywords for different personality types
-    personalities = {
-        "optimist": ["happy", "good", "success", "love", "great", "joy", "beautiful", "wonderful", "開心", "好", "成功", "愛", "棒", "喜歡"],
-        "pessimist": ["sad", "bad", "failure", "hate", "terrible", "pain", "awful", "傷心", "不好", "失敗", "討厭", "糟", "痛苦"],
-        "analyst": ["think", "because", "data", "number", "analyze", "reason", "logic", "思考", "因為", "數據", "分析", "邏輯"],
-    }
-
     scores = {p: 0 for p in personalities}
     
     lower_text = text.lower()
 
     # Calculate scores based on keyword occurrences
-    for personality, keywords in personalities.items():
-        for keyword in keywords:
+    for personality, data in personalities.items():
+        for keyword in data.get("keywords", []):
             scores[personality] += lower_text.count(keyword)
 
     # Determine the dominant personality
@@ -57,7 +55,9 @@ def analyze_personality(text: str) -> Dict:
     summary="Analyze user personality from text",
     tags=["Analysis"],
 )
-async def personality_analysis(payload: PersonalityAnalysisRequest):
+async def personality_analysis(
+    payload: PersonalityAnalysisRequest, db: firestore.Client = Depends(get_firestore_db)
+):
     """
     Performs a simple personality analysis on the user's input text.
 
@@ -65,7 +65,9 @@ async def personality_analysis(payload: PersonalityAnalysisRequest):
     - **Output**: A personality type (e.g., Optimist, Pessimist, Analyst, Realist)
       and the scores for each category.
     """
-    analysis_result = analyze_personality(payload.text)
+    personalities_ref = db.collection("personalities").stream()
+    personalities = {doc.id: doc.to_dict() for doc in personalities_ref}
+    analysis_result = analyze_personality(payload.text, personalities)
     return PersonalityAnalysisResponse(**analysis_result)
 
 
