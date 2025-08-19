@@ -1,9 +1,14 @@
 import re
+from typing import Dict
 
 import torch
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.models.api import ApiResponse
+from app.models.api import (
+    ApiResponse,
+    PersonalityAnalysisRequest,
+    PersonalityAnalysisResponse,
+)
 from app.models.legacy import (
     InformationExtractionRequest,
     IntentClassificationRequest,
@@ -12,6 +17,59 @@ from app.models.legacy import (
 )
 
 router = APIRouter()
+
+
+# --- Personality Analysis Logic ---
+def analyze_personality(text: str) -> Dict:
+    """
+    Analyzes the text to determine a personality type based on keyword matching.
+    This is a simplified prototype implementation.
+    """
+    # Define keywords for different personality types
+    personalities = {
+        "optimist": ["happy", "good", "success", "love", "great", "joy", "beautiful", "wonderful", "開心", "好", "成功", "愛", "棒", "喜歡"],
+        "pessimist": ["sad", "bad", "failure", "hate", "terrible", "pain", "awful", "傷心", "不好", "失敗", "討厭", "糟", "痛苦"],
+        "analyst": ["think", "because", "data", "number", "analyze", "reason", "logic", "思考", "因為", "數據", "分析", "邏輯"],
+    }
+
+    scores = {p: 0 for p in personalities}
+    
+    lower_text = text.lower()
+
+    # Calculate scores based on keyword occurrences
+    for personality, keywords in personalities.items():
+        for keyword in keywords:
+            scores[personality] += lower_text.count(keyword)
+
+    # Determine the dominant personality
+    # If all scores are 0, default to "Realist"
+    if all(score == 0 for score in scores.values()):
+        dominant_personality = "realist"
+    else:
+        dominant_personality = max(scores, key=scores.get)
+
+    return {"personality": dominant_personality.capitalize(), "scores": scores}
+
+
+@router.post(
+    "/personality_analysis",
+    response_model=PersonalityAnalysisResponse,
+    summary="Analyze user personality from text",
+    tags=["Analysis"],
+)
+async def personality_analysis(payload: PersonalityAnalysisRequest):
+    """
+    Performs a simple personality analysis on the user's input text.
+
+    - **Input**: A string of text.
+    - **Output**: A personality type (e.g., Optimist, Pessimist, Analyst, Realist)
+      and the scores for each category.
+    """
+    analysis_result = analyze_personality(payload.text)
+    return PersonalityAnalysisResponse(**analysis_result)
+
+
+# --- Existing Endpoints ---
 
 
 def get_bert_model(request: Request):
