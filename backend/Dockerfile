@@ -33,9 +33,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
 
 # Copy the application source code into the working directory
-COPY main.py .
-COPY tree_engine.py .
-COPY firebase_setup.py .
+COPY app/ .
 
 # --- IMPORTANT SECURITY NOTE ---
 # DO NOT copy the 'firebase-credentials.json' file into the Docker image.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'decision_service.dart';
 import 'settings_page.dart';
+import 'personality_analysis_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -123,6 +124,15 @@ class _DecisionScreenState extends State<DecisionScreen> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const PersonalityAnalysisScreen()),
+          );
+        },
+        tooltip: 'Analyze Personality',
+        child: const Icon(Icons.psychology),
       ),
     );
   }

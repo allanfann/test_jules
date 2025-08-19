@@ -10,4 +10,4 @@ services:
       - ./firebase-credentials.json:/app/firebase-credentials.json
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-credentials.json
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
