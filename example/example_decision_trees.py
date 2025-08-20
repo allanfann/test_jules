@@ -250,5 +250,48 @@ TREES_DATA = [
                 "children": []
             }
         }
+    },
+    {
+        "tree_id": "mbti_questionnaire",
+        "description": "一個簡易的 MBTI 性格分析問卷。",
+        "nodes": {
+            "root": {
+                "text": "問題 1/4: 在一場社交活動後，你通常感覺？",
+                "type": "DECISION",
+                "children": [
+                    {"answer_text": "E: 精神振奮，充滿活力", "next_node_id": "q2_sn"},
+                    {"answer_text": "I: 筋疲力盡，需要獨處", "next_node_id": "q2_sn"}
+                ]
+            },
+            "q2_sn": {
+                "text": "問題 2/4: 當學習新事物時，你傾向於？",
+                "type": "DECISION",
+                "children": [
+                    {"answer_text": "S: 專注於具體的細節和實際應用", "next_node_id": "q3_tf"},
+                    {"answer_text": "N: 著眼於整體的概念和未來的可能性", "next_node_id": "q3_tf"}
+                ]
+            },
+            "q3_tf": {
+                "text": "問題 3/4: 當做決定時，你更重視？",
+                "type": "DECISION",
+                "children": [
+                    {"answer_text": "T: 客觀的邏輯與公平性", "next_node_id": "q4_jp"},
+                    {"answer_text": "F: 他人的感受與和諧", "next_node_id": "q4_jp"}
+                ]
+            },
+            "q4_jp": {
+                "text": "問題 4/4: 對於計畫，你偏好？",
+                "type": "DECISION",
+                "children": [
+                    {"answer_text": "J: 有一個清晰、確定的計畫", "next_node_id": "end_of_quiz"},
+                    {"answer_text": "P: 保持開放，隨時適應變化", "next_node_id": "end_of_quiz"}
+                ]
+            },
+            "end_of_quiz": {
+                "text": "你已完成所有問題。請點擊下方按鈕查看你的分析結果。",
+                "type": "OUTCOME",
+                "children": []
+            }
+        }
     }
 ]

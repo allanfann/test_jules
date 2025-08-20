@@ -46,6 +46,38 @@ class DecisionResponse {
   }
 }
 
+class MbtiAnalysisRequest {
+  final List<String> answers;
+
+  MbtiAnalysisRequest({required this.answers});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'answers': answers,
+    };
+  }
+}
+
+class MbtiAnalysisResponse {
+  final String mbtiType;
+  final String summary;
+  final String description;
+
+  MbtiAnalysisResponse({
+    required this.mbtiType,
+    required this.summary,
+    required this.description,
+  });
+
+  factory MbtiAnalysisResponse.fromJson(Map<String, dynamic> json) {
+    return MbtiAnalysisResponse(
+      mbtiType: json['mbti_type'],
+      summary: json['summary'],
+      description: json['description'],
+    );
+  }
+}
+
 class DecisionService {
   final SettingsService _settingsService = SettingsService();
 
@@ -63,6 +95,23 @@ class DecisionService {
       return DecisionResponse.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
     } else {
       throw Exception('Failed to load decision from backend');
+    }
+  }
+
+  Future<MbtiAnalysisResponse> getMbtiResult(MbtiAnalysisRequest request) async {
+    final backendUrl = await _settingsService.getBackendUrl();
+    final response = await http.post(
+      Uri.parse('$backendUrl/api/v1/mbti_analysis'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return MbtiAnalysisResponse.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+    } else {
+      throw Exception('Failed to load MBTI result from backend');
     }
   }
 }

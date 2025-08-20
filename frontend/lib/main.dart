@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'decision_service.dart';
+import 'mbti_questionnaire_page.dart';
 import 'settings_page.dart';
 import 'personality_analysis_page.dart';
 
@@ -36,7 +37,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
   List<String> _answers = [];
   bool _isOutcome = false;
   String? _currentNodeId;
-  final String _treeId = "sample_tree"; // You might want to make this dynamic
+  final String _treeId = "stock_investment_tsmc"; // Default tree
 
   @override
   void initState() {
@@ -125,14 +126,31 @@ class _DecisionScreenState extends State<DecisionScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const PersonalityAnalysisScreen()),
-          );
-        },
-        tooltip: 'Analyze Personality',
-        child: const Icon(Icons.psychology),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const PersonalityAnalysisScreen()),
+              );
+            },
+            tooltip: 'Analyze Personality',
+            heroTag: 'personality_analysis',
+            child: const Icon(Icons.psychology),
+          ),
+          const SizedBox(width: 10),
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const MbtiQuestionnairePage()),
+              );
+            },
+            tooltip: 'MBTI Test',
+            heroTag: 'mbti_test',
+            child: const Icon(Icons.quiz),
+          ),
+        ],
       ),
     );
   }
