@@ -1,15 +1,10 @@
 import re
-from typing import Dict
 
 import torch
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app.models.api import (
-    ApiResponse,
-    PersonalityAnalysisRequest,
-    PersonalityAnalysisResponse,
-)
-from app.models.legacy import (
+from app.models.api import ApiResponse
+from app.models.processing import (
     InformationExtractionRequest,
     IntentClassificationRequest,
     StructuredConversionRequest,
@@ -17,62 +12,6 @@ from app.models.legacy import (
 )
 
 router = APIRouter()
-
-
-from firebase_admin import firestore
-
-from app.core.firebase_setup import get_firestore_db
-
-
-# --- Personality Analysis Logic ---
-def analyze_personality(text: str, personalities: Dict) -> Dict:
-    """
-    Analyzes the text to determine a personality type based on keyword matching.
-    This is a simplified prototype implementation.
-    """
-    scores = {p: 0 for p in personalities}
-    
-    lower_text = text.lower()
-
-    # Calculate scores based on keyword occurrences
-    for personality, data in personalities.items():
-        for keyword in data.get("keywords", []):
-            scores[personality] += lower_text.count(keyword)
-
-    # Determine the dominant personality
-    # If all scores are 0, default to "Realist"
-    if all(score == 0 for score in scores.values()):
-        dominant_personality = "realist"
-    else:
-        dominant_personality = max(scores, key=scores.get)
-
-    return {"personality": dominant_personality.capitalize(), "scores": scores}
-
-
-@router.post(
-    "/personality_analysis",
-    response_model=PersonalityAnalysisResponse,
-    summary="Analyze user personality from text",
-    tags=["Analysis"],
-)
-async def personality_analysis(
-    payload: PersonalityAnalysisRequest, db: firestore.Client = Depends(get_firestore_db)
-):
-    """
-    Performs a simple personality analysis on the user's input text.
-
-    - **Input**: A string of text.
-    - **Output**: A personality type (e.g., Optimist, Pessimist, Analyst, Realist)
-      and the scores for each category.
-    """
-    personalities_ref = db.collection("personalities").stream()
-    personalities = {doc.id: doc.to_dict() for doc in personalities_ref}
-    analysis_result = analyze_personality(payload.text, personalities)
-    return PersonalityAnalysisResponse(**analysis_result)
-
-
-# --- Existing Endpoints ---
-
 
 def get_bert_model(request: Request):
     if (
@@ -95,8 +34,8 @@ def get_bert_tokenizer(request: Request):
 @router.post(
     "/text-processing",
     response_model=ApiResponse,
-    summary="Process Raw Text using BERT",
-    tags=["Legacy Processing"],
+    summary="使用 BERT 處理原始文字",
+    tags=["Processing"],
 )
 async def text_processing(
     payload: TextProcessingRequest,
@@ -104,70 +43,64 @@ async def text_processing(
     model=Depends(get_bert_model),
 ):
     """
-    Submits raw text for tokenization and embedding using a pre-trained BERT model.
+    提交原始文字，使用預先訓練的 BERT 模型進行斷詞和嵌入。
     """
-    # Tokenize the text
     inputs = tokenizer(
         payload.text, return_tensors="pt", truncation=True, max_length=512
     )
     tokens = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
 
-    # Get embeddings
     with torch.no_grad():
         outputs = model(**inputs)
 
-    # Use the embedding of the [CLS] token as the sentence representation
     sentence_embedding = outputs.pooler_output[0].tolist()
 
     processed_data = {
         "original_text": payload.text,
         "tokens": tokens,
-        "embedding_vector": sentence_embedding,  # Renamed from tfidf_vector
+        "embedding_vector": sentence_embedding,
     }
     return ApiResponse(
         status="success",
         data=processed_data,
-        message="Text processed successfully with BERT.",
+        message="已成功使用 BERT 處理文字。",
     )
 
 
 @router.post(
     "/information-extraction",
     response_model=ApiResponse,
-    summary="Extract Information (BERT based)",
-    tags=["Legacy Processing"],
+    summary="資訊擷取 (基於 BERT)",
+    tags=["Processing"],
 )
 async def information_extraction(
     payload: InformationExtractionRequest,
     tokenizer=Depends(get_bert_tokenizer),
 ):
     """
-    Extracts tokens as entities using the BERT tokenizer.
-    Note: This is a basic implementation. For true NER, a fine-tuned model is needed.
+    使用 BERT tokenizer 將詞語作為實體進行擷取。
     """
     inputs = tokenizer(
         payload.text, return_tensors="pt", truncation=True, max_length=512
     )
     tokens = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
 
-    # For now, we'll consider all tokens as "entities" and have no "events"
-    # This is a placeholder until a proper NER model is integrated.
     extracted_data = {"entities": tokens, "events": []}
     return ApiResponse(
         status="success",
         data=extracted_data,
-        message="Information extracted using BERT tokenizer.",
+        message="已使用 BERT tokenizer 擷取資訊。",
     )
 
 
 @router.post(
     "/intent-classification",
     response_model=ApiResponse,
-    summary="Classify Intent",
-    tags=["Legacy Processing"],
+    summary="意圖分類",
+    tags=["Processing"],
 )
 async def intent_classification(request: IntentClassificationRequest):
-    """Classifies the intent from a conversational snippet based on keywords."""
+    """根據關鍵字對話語片段進行意圖分類。"""
     intents = {
         "greeting": ["你好", "您好", "嗨", "哈囉"],
         "goodbye": ["再見", "掰掰"],
@@ -187,21 +120,19 @@ async def intent_classification(request: IntentClassificationRequest):
     return ApiResponse(
         status="success",
         data=classified_data,
-        message="Intent classified successfully.",
+        message="意圖分類成功。",
     )
 
 
 @router.post(
     "/structured-conversion",
     response_model=ApiResponse,
-    summary="Convert to Structured Data",
-    tags=["Legacy Processing"],
+    summary="轉換為結構化資料",
+    tags=["Processing"],
 )
 async def structured_conversion(request: StructuredConversionRequest):
-    """Converts unstructured text into a structured format based on a schema."""
-    # Simple key-value extraction using regex
-    # Looks for patterns like "key: value" or "key is value"
-    patterns = [r"(.*?):\s*(.*)", r"(.*?)\s+是\s+(.*)"]
+    """根據 schema 將非結構化文字轉換為結構化格式。"""
+    patterns = [r"([^:]+):\s*(.*)"]
 
     data = {}
     for line in request.text.split("\n"):
@@ -217,5 +148,5 @@ async def structured_conversion(request: StructuredConversionRequest):
     return ApiResponse(
         status="success",
         data=structured_data,
-        message="Text converted to structured format successfully.",
+        message="文字已成功轉換為結構化格式。",
     )

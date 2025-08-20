@@ -16,7 +16,7 @@ def client():
         yield c
 
 
-# --- Test Cases for Legacy Endpoints ---
+# --- Test Cases for Processing Endpoints ---
 
 
 def test_text_processing_with_bert(client):
@@ -25,7 +25,7 @@ def test_text_processing_with_bert(client):
     payload = {"text": "我愛北京天安門", "tenant_id": "test"}
 
     # 2. Send request
-    response = client.post("/api/v1/legacy/text-processing", json=payload)
+    response = client.post("/api/v1/processing/text-processing", json=payload)
 
     # 3. Assert response
     assert response.status_code == 200
@@ -50,7 +50,7 @@ def test_text_processing_with_bert(client):
 def test_information_extraction_with_bert(client):
     """Test the /information-extraction endpoint with the new BERT implementation."""
     payload = {"text": "張三昨天去了台北車站。", "tenant_id": "test"}
-    response = client.post("/api/v1/legacy/information-extraction", json=payload)
+    response = client.post("/api/v1/processing/information-extraction", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
@@ -72,7 +72,7 @@ def test_information_extraction_with_bert(client):
 def test_intent_classification_greeting(client):
     """Test the /intent-classification endpoint for a greeting (unchanged)."""
     payload = {"text": "你好啊，朋友！", "tenant_id": "test"}
-    response = client.post("/api/v1/legacy/intent-classification", json=payload)
+    response = client.post("/api/v1/processing/intent-classification", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
@@ -83,7 +83,7 @@ def test_intent_classification_greeting(client):
 def test_intent_classification_unknown(client):
     """Test the /intent-classification endpoint for an unknown intent (unchanged)."""
     payload = {"text": "這句話沒有特定意圖。", "tenant_id": "test"}
-    response = client.post("/api/v1/legacy/intent-classification", json=payload)
+    response = client.post("/api/v1/processing/intent-classification", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
@@ -98,7 +98,7 @@ def test_structured_conversion(client):
         "tenant_id": "test",
         "schema_id": "user_info",
     }
-    response = client.post("/api/v1/legacy/structured-conversion", json=payload)
+    response = client.post("/api/v1/processing/structured-conversion", json=payload)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
